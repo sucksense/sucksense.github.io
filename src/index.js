@@ -1,24 +1,11 @@
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
     const file_input = document.getElementById('lua_file');
     const file_wrapper = document.getElementById('file_wrapper');
     const file_text = document.getElementById('file_text');
     const upload_btn = document.getElementById('upload_btn');
     const status_message = document.getElementById('status_message');
 
-    let apikey = null;
-
-    async function loadApiKey() {
-        try {
-            const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://pastebin.com/raw/gNqaV5PV'));
-            const key = await response.text();
-            apikey = key.trim() + 'S1qUDyUDJXTFY3TXsKiO9a';
-            console.log('API ключ успешно загружен');
-        } catch (error) {
-            show_status('не удалось загрузить API ключ', 'error');
-        }
-    }
-
-    await loadApiKey();
+    const apikey = "11BMRTQWY0guYv8fzmnMzR_xDLVzaBaJVgp2Dw7o9Rv9J2Z0MlwdYedygZe6jcANoSG3O7GKKBclHBxSc1"
 
     function b64EncodeUnicode(str) {
         return btoa(
@@ -27,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             )
         );
     }
+
 
     file_input.addEventListener('change', function() {
         if (this.files.length > 0) {
@@ -42,11 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     upload_btn.addEventListener('click', async function() {
         const lua_name = document.getElementById('lua_name').value;
         const lua_icon = document.getElementById('lua_icon').value;
-
-        if (!apikey) {
-            show_status('API ключ не загружен, попробуйте перезагрузить страницу', 'error');
-            return;
-        }
 
         if (!lua_name.trim()) {
             show_status('please enter a script name', 'error');
@@ -93,7 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${apikey}`,
+                    'Authorization': `token github_pat_${apikey}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -129,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const updateResponse = await fetch(`https://api.github.com/repos/${repo}/contents/${listPath}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${apikey}`,
+                    'Authorization': `token github_pat_${apikey}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -161,4 +144,4 @@ document.addEventListener("DOMContentLoaded", async () => {
         upload_btn.classList.remove('loading');
         upload_btn.innerHTML = '<i class="fas fa-upload"></i> upload';
     }
-});
+})
