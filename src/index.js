@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const upload_btn = document.getElementById('upload_btn');
     const status_message = document.getElementById('status_message');
 
+    const WORKER_URL = 'github-upload.princesswido1337.workers.dev';
+
     function b64EncodeUnicode(str) {
         return btoa(
             encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
@@ -16,6 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
     file_input.addEventListener('change', function() {
         if (this.files.length > 0) {
             const fileName = this.files[0].name;
+            
+            if (!fileName.endsWith('.lua')) {
+                show_status('only .lua files are allowed', 'error');
+                this.value = '';
+                return;
+            }
+            
             file_text.textContent = fileName;
             file_wrapper.classList.add('has-file');
         } else {
@@ -39,6 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const file = file_input.files[0];
+        
+        if (file.size > 1024 * 1024) {
+            show_status('file too large (max 1MB)', 'error');
+            return;
+        }
+
         const reader = new FileReader();
 
         upload_btn.disabled = true;
@@ -47,7 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         reader.onload = function(event) {
             const content = event.target.result;
-            trigger_github_action(lua_name, lua_icon, file.name, content);
+            upload_to_worker(lua_name, lua_icon, file.name, content);
+        };
+
+        reader.onerror = function() {
+            show_status('failed to read file', 'error');
+            reset_button();
         };
 
         reader.readAsText(file);
@@ -65,42 +85,40 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function trigger_github_action(name, icon, fileName, content) {
-        const repo = "sucksense/sucksense";
-        const url = `https://api.github.com/repos/${repo}/dispatches`;
-
+    async function upload_to_worker(name, icon, fileName, content) {
         try {
-            const response = await fetch(url, {
+            const response = await fetch(WORKER_URL, {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Authorization': `token ${PAT_TOKEN}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    event_type: 'upload-lua',
-                    client_payload: {
-                        lua_name: name,
-                        lua_icon: icon,
-                        file_name: fileName,
-                        content: b64EncodeUnicode(content)
-                    }
+                    lua_name: name,
+                    lua_icon: icon || '📜',
+                    file_name: fileName,
+                    content: b64EncodeUnicode(content)
                 })
             });
 
-            if (response.status === 204) {
-                show_status('script uploaded successfully! processing...', 'success');
+            const data = await response.json();
 
+            if (response.ok && data.success) {
+                show_status(
+                    'script uploaded successfully! it will appear shortly.', 
+                    'success'
+                );
+                
+                // Очистить форму
                 document.getElementById('lua_name').value = '';
                 document.getElementById('lua_icon').value = '';
                 file_input.value = '';
                 file_text.textContent = 'click to select .lua file';
                 file_wrapper.classList.remove('has-file');
             } else {
-                const error = await response.text();
-                throw new Error(`GitHub API error: ${response.status} - ${error}`);
+                throw new Error(data.error || 'Upload failed');
             }
         } catch (error) {
+            console.error('Upload error:', error);
             show_status('upload failed: ' + error.message, 'error');
         } finally {
             reset_button();
