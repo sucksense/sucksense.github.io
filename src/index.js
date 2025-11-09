@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const upload_btn = document.getElementById('upload_btn');
     const status_message = document.getElementById('status_message');
 
-    const apikey = "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"
+    const apikey = "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"
 
     function b64EncodeUnicode(str) {
         return btoa(
