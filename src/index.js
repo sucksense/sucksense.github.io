@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-
     file_input.addEventListener('change', function() {
         if (this.files.length > 0) {
             const fileName = this.files[0].name;
@@ -48,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         reader.onload = function(event) {
             const content = event.target.result;
-            upload_to_github(lua_name, lua_icon, file.name, content);
+            trigger_github_action(lua_name, lua_icon, file.name, content);
         };
 
         reader.readAsText(file);
@@ -57,6 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function show_status(message, type) {
         status_message.textContent = message;
         status_message.className = 'status-message ' + type;
+        status_message.style.display = 'block';
 
         if (type === 'success') {
             setTimeout(() => {
@@ -65,73 +65,43 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function upload_to_github(name, icon, fileName, content) {
+    async function trigger_github_action(name, icon, fileName, content) {
         const repo = "sucksense/sucksense";
-        const path = `workshop/${fileName}`;
-        const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+        const url = `https://api.github.com/repos/${repo}/dispatches`;
 
         try {
             const response = await fetch(url, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
-                    'Authorization': `token ${{ secrets.GITHUB_TOKEN }}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Authorization': `token ${PAT_TOKEN}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: "lua script added",
-                    content: b64EncodeUnicode(content),
-                    branch: "main"
+                    event_type: 'upload-lua',
+                    client_payload: {
+                        lua_name: name,
+                        lua_icon: icon,
+                        file_name: fileName,
+                        content: b64EncodeUnicode(content)
+                    }
                 })
             });
 
-            if (response.ok) {
-                const rawUrl = `https://raw.githubusercontent.com/${repo}/main/workshop/${fileName}`;
-                await update_workshop_list(name, icon, rawUrl);
-            } else {
-                throw new Error(response.statusText);
-            }
-        } catch (error) {
-            show_status('upload failed: ' + error.message, 'error');
-            reset_button();
-        }
-    }
+            if (response.status === 204) {
+                show_status('script uploaded successfully! processing...', 'success');
 
-    async function update_workshop_list(name, icon, rawUrl) {
-        const repo = "sucksense/sucksense";
-        const listPath = `list.txt`;
-
-        try {
-            const response = await fetch(`https://api.github.com/repos/${repo}/contents/${listPath}`);
-            const data = await response.json();
-            const currentContent = atob(data.content);
-            const newEntry = `${icon}|${rawUrl}|${name}\n`;
-            const updatedContent = currentContent + newEntry;
-
-            const updateResponse = await fetch(`https://api.github.com/repos/${repo}/contents/${listPath}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${{ secrets.GITHUB_TOKEN }}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: "workshop list updated",
-                    content: b64EncodeUnicode(updatedContent),
-                    sha: data.sha,
-                    branch: "main"
-                })
-            });
-
-            if (updateResponse.ok) {
-                show_status('script uploaded successfully!', 'success');
                 document.getElementById('lua_name').value = '';
+                document.getElementById('lua_icon').value = '';
                 file_input.value = '';
                 file_text.textContent = 'click to select .lua file';
                 file_wrapper.classList.remove('has-file');
             } else {
-                throw new Error(updateResponse.statusText);
+                const error = await response.text();
+                throw new Error(`GitHub API error: ${response.status} - ${error}`);
             }
         } catch (error) {
-            show_status('failed to update list: ' + error.message, 'error');
+            show_status('upload failed: ' + error.message, 'error');
         } finally {
             reset_button();
         }
@@ -142,4 +112,4 @@ document.addEventListener("DOMContentLoaded", () => {
         upload_btn.classList.remove('loading');
         upload_btn.innerHTML = '<i class="fas fa-upload"></i> upload';
     }
-})
+});

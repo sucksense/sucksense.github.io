@@ -1,0 +1,50 @@
+name: Upload Lua Script via Dispatch
+
+on:
+  repository_dispatch:
+    types: [upload-lua]
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract data from payload
+        id: extract
+        run: |
+          echo "lua_name=${{ github.event.client_payload.lua_name }}" >> $GITHUB_OUTPUT
+          echo "lua_icon=${{ github.event.client_payload.lua_icon }}" >> $GITHUB_OUTPUT
+          echo "file_name=${{ github.event.client_payload.file_name }}" >> $GITHUB_OUTPUT
+      
+      - name: Create workshop directory if needed
+        run: mkdir -p workshop
+      
+      - name: Save lua file
+        run: |
+          echo "${{ github.event.client_payload.content }}" | base64 -d > "workshop/${{ steps.extract.outputs.file_name }}"
+      
+      - name: Update list.txt
+        run: |
+          ICON="${{ steps.extract.outputs.lua_icon }}"
+          NAME="${{ steps.extract.outputs.lua_name }}"
+          FILE="${{ steps.extract.outputs.file_name }}"
+          RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/workshop/${FILE}"
+          
+          touch list.txt
+          
+          echo "${ICON}|${RAW_URL}|${NAME}" >> list.txt
+      
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add workshop/${{ steps.extract.outputs.file_name }} list.txt
+          git commit -m "Add lua script: ${{ steps.extract.outputs.lua_name }}"
+          git push
