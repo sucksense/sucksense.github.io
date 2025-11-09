@@ -9,12 +9,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadApiKey() {
         try {
-            const response = await fetch('https://pastebin.com/raw/gNqaV5PV');
+            const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://pastebin.com/raw/gNqaV5PV'));
             const key = await response.text();
             apikey = key.trim() + 'S1qUDyUDJXTFY3TXsKiO9a';
+            console.log('API ключ успешно загружен');
         } catch (error) {
-            console.error('error with apikey: ', error);
-            show_status('error: ', 'error');
+            show_status('не удалось загрузить API ключ', 'error');
         }
     }
 
