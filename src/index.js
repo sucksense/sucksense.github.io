@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadApiKey() {
         try {
-            const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://pastebin.com/raw/gNqaV5PV'));
+            const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://pastebin.com/raw/gNqaV5PV'));
             const key = await response.text();
             apikey = key.trim() + 'S1qUDyUDJXTFY3TXsKiO9a';
             console.log('API ключ успешно загружен');
