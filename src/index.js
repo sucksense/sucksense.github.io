@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${{ secrets.API_KEY }}`,
+                    'Authorization': `token ${{ secrets.GITHUB_TOKEN }}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const updateResponse = await fetch(`https://api.github.com/repos/${repo}/contents/${listPath}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${{ secrets.API_KEY }}`,
+                    'Authorization': `token ${{ secrets.GITHUB_TOKEN }}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
