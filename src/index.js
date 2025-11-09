@@ -5,8 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const upload_btn = document.getElementById('upload_btn');
     const status_message = document.getElementById('status_message');
 
-    const apikey = "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"
-
     function b64EncodeUnicode(str) {
         return btoa(
             encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
@@ -76,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${apikey}`,
+                    'Authorization': `token ${{ secrets.API_KEY }}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -112,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const updateResponse = await fetch(`https://api.github.com/repos/${repo}/contents/${listPath}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${apikey}`,
+                    'Authorization': `token ${{ secrets.API_KEY }}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
