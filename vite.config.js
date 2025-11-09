@@ -1,6 +1,5 @@
-// vite.config.js
-import { defineConfig } from 'vite';
-import obfuscatorPlugin from 'rollup-plugin-javascript-obfuscator'; // или используемый тобой плагин
+import { defineConfig } from 'vite'
+import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
 import { terser } from 'rollup-plugin-terser';
 
 export default defineConfig({
