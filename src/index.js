@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: "lua script added",
+                    message: "lua script added: " + name,
                     content: b64EncodeUnicode(content),
                     branch: "main"
                 })
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: "workshop list updated",
+                    message: "workshop list updated: " + name,
                     content: b64EncodeUnicode(updatedContent),
                     sha: data.sha,
                     branch: "main"
